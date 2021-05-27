@@ -1,26 +1,32 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import Sidebar from "./components/sidebar/sidebar.component";
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import routes from "./routes";
+import "./styles.css";
 
-function App() {
+const RenderRoute = (route: any) => {
+  return (
+    <Route
+      path={route.path}
+      exact
+      render={(props) => <route.component {...props} />}
+    ></Route>
+  );
+};
+
+const App: React.FC = () => {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Sidebar />
+      <Router>
+        <Switch>
+          {routes.map((route, index) => (
+            <RenderRoute {...route} key={index} />
+          ))}
+        </Switch>
+      </Router>
     </div>
   );
-}
+};
 
 export default App;
