@@ -1,54 +1,40 @@
-import React, { useState, useEffect, Suspense } from "react";
-import axiosInstance from "../../helpers/axiosInstance";
-import { useSelector } from "react-redux";
-import imageFile from "../../components/image/gitcat.png";
-import ButtonComponent from "../../components/button/button.component";
+import React, { Suspense } from 'react';
+import imageFile from '../../components/image/gitcat.png';
+import ButtonComponent from '../../components/button/button.component';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { increasePageLimitBy } from '../../redux/ducks/catsReducer';
+import { Cat } from '../../domain/models';
 
-const ImageComponent: any = React.lazy(() =>
-  import("../../components/image/image.component")
+const ImageComponent: any = React.lazy(
+  () => import('../../components/image/image.component')
 );
 
 const ListContainer: React.FC = () => {
-  const [listItems, setListItems] = useState<any[]>([]);
-  const [page, setPage] = useState(10);
-  const selectCategoryId  = useSelector<any>(state => state.selectCategoryId.selectCategoryId);
-  
-  useEffect(() => {
-    fetchData();
-  }, [selectCategoryId]);
+  const dispatch = useDispatch();
 
-  const fetchData = async () => {
-    try {
-      const result = await axiosInstance().get(
-        `/images/search?limit=${page}&category_ids=${selectCategoryId}`
-      );
-      const data = await result.data;
-      setPage(page + 10);
-      setListItems(() => {
-        return [...listItems, ...data];
-      });
-    } catch (error) {
-      console.log(error);
-    }
-  };
+  const { selectedCategoryId, cats } = useSelector((state: RootState) => ({
+    selectedCategoryId: state.cats.selectedCategoryId,
+    cats: state.cats.results,
+  }));
 
-  const fetchMoreListItems = () => {
-    fetchData();
-  };
+  const loadMoreCats = () => dispatch(increasePageLimitBy(10));
 
   return (
     <div className="list">
-      {listItems.map((listItem) => (
-        <div className="card" key={listItem.id}>
-          	<Suspense fallback={<img src={imageFile} alt='Avatar' style={{ width: '50%' }} />}>
-						<ImageComponent src={listItem.url} />
-				  	</Suspense>
+      {cats.map((cat: Cat, index: number) => (
+        <div className="card" key={`${cat.id}${index}`}>
+          <Suspense
+            fallback={
+              <img src={imageFile} alt="Avatar" style={{ width: '50%' }} />
+            }
+          >
+            <ImageComponent src={cat.url} />
+          </Suspense>
         </div>
       ))}
-      {selectCategoryId ? (
-        <ButtonComponent loadMore={() => fetchMoreListItems()}>
-          Load more
-        </ButtonComponent>
+      {selectedCategoryId ? (
+        <ButtonComponent loadMore={loadMoreCats}>Load more</ButtonComponent>
       ) : (
         <h3>no category selected</h3>
       )}
